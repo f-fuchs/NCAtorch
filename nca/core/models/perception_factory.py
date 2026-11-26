@@ -2,6 +2,7 @@ from nca.utils.config import Config, PerceptionConfig
 from nca.core.models.ca.perceptions import (
     AttentionPerception,
     ConvPerception,
+    DepthwiseConvPerception,
     SobelPerception,
     DeformableConvPerception,
     ResidualConvPerception,
@@ -20,6 +21,8 @@ from nca.core.models.ca.perceptions import (
 #
 # Available modules:
 #   "conv"           — standard dilated convolution
+#   "depthwise_conv" — per-channel (depthwise) convolution; output =
+#                      in_channel * DEPTHWISE_MULTIPLIER (OUT_CHANNEL ignored)
 #   "attention"      — single-head local attention with optional relative pos bias
 #   "mh_attention"   — multi-head attention with optional layer-norm and FFN
 #   "sobel"          — fixed Sobel edge-detection filters (no learned parameters)
@@ -28,6 +31,9 @@ from nca.core.models.ca.perceptions import (
 PERCEPTION_REGISTRY = {
     "conv": lambda in_ch, cfg, dev: ConvPerception(
         in_ch, cfg.OUT_CHANNEL, cfg.KERNEL_SIZE, dilation=cfg.DILATION, device=dev
+    ),
+    "depthwise_conv": lambda in_ch, cfg, dev: DepthwiseConvPerception(
+        in_ch, cfg.KERNEL_SIZE, multiplier=cfg.DEPTHWISE_MULTIPLIER, dilation=cfg.DILATION, device=dev
     ),
     "attention": lambda in_ch, cfg, dev: AttentionPerception(
         in_ch, cfg.OUT_CHANNEL, cfg.KERNEL_SIZE,

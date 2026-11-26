@@ -17,8 +17,12 @@ class PerceptionConfig(StrictModel):
     Attributes:
         MODE: Neighbourhood operator.
         KERNEL_SIZE: Spatial kernel size for convolution-based perceptions.
-        DILATION: Dilation factor for ``conv`` perception.
+        DILATION: Dilation factor for ``conv`` / ``depthwise_conv`` perception.
         OUT_CHANNEL: Number of output channels (filters) from this branch.
+            Ignored by ``depthwise_conv`` and ``sobel``, which derive their
+            output width from the input channels.
+        DEPTHWISE_MULTIPLIER: Per-input-channel output multiplier for
+            ``depthwise_conv``; output width is ``in_channel * multiplier``.
         NUM_HEADS: Attention heads for ``attention`` / ``mh_attention``.
         EMBED_DIM: Projection dimension for ``mh_attention``.
         USE_REL_POS_BIAS: Add relative positional bias in attention layers.
@@ -30,6 +34,7 @@ class PerceptionConfig(StrictModel):
     KERNEL_SIZE: int = 3
     DILATION: int = 1
     OUT_CHANNEL: int = 80
+    DEPTHWISE_MULTIPLIER: int = 1
     # attention / mh_attention
     NUM_HEADS: int = 4
     EMBED_DIM: int = 128
@@ -52,6 +57,13 @@ class PerceptionConfig(StrictModel):
     def check_out_channel(cls, value):
         if value <= 0:
             raise ValueError("OUT_CHANNEL must be a positive integer.")
+        return value
+
+    @field_validator("DEPTHWISE_MULTIPLIER")
+    @classmethod
+    def check_depthwise_multiplier(cls, value):
+        if value <= 0:
+            raise ValueError("DEPTHWISE_MULTIPLIER must be a positive integer.")
         return value
 
 
